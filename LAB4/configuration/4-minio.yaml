@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # This name uniquely identifies the Deployment
+  name: minio
+spec:
+  selector:
+    matchLabels:
+      app: minio # has to match .spec.template.metadata.labels
+  strategy:
+    # Specifies the strategy used to replace old Pods by new ones
+    # Refer: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        # This label is used as a selector in Service definition
+        app: minio
+    spec:
+      # Volumes used by this deployment
+      volumes:
+      - name: data
+        # This volume is based on PVC
+        persistentVolumeClaim:
+          # Name of the PVC created earlier
+          claimName: minio-pv-claim
+      containers:
+      - name: minio
+        # Volume mounts for this container
+        volumeMounts:
+        # Volume 'data' is mounted to path '/data'
+        - name: data 
+          mountPath: "/data"
+        # Pulls the lastest Minio image from Docker Hub
+        image: quay.io/minio/minio
+        args:
+        - server
+        - /data
+        - --console-address
+        - :9001
+        env:
+        # MinIO access key and secret key
+        - name: MINIO_ROOT_USER
+          value: "RETRACTED" # <--- INSERT MinIO USERNAME
+        - name: MINIO_ROOT_PASSWORD
+          value: "RETRACTED" # <--- INSERT MinIO PASSWORD
+        ports:
+        - containerPort: 9000
+        - containerPort: 9001
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  # This name uniquely identifies the service
+  name: storage
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 9000
+      targetPort: 9000
+      nodePort: 30036
+      protocol: TCP
+      name: minio
+    - port: 9001
+      targetPort: 9001
+      nodePort: 30037
+      protocol: TCP 
+      name: console     
+  selector:
+    # Looks for labels `app:minio` in the namespace and applies the spec
+    app: minio

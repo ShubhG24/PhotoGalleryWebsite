@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: photogallery-service
+spec:
+  selector:
+    app: photogallery
+  ports:
+  - protocol: "TCP"
+    port: 6000
+    targetPort: 5000
+  type: LoadBalancer
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: photogallery
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      app: photogallery
+  template:
+    metadata:
+      labels:
+        app: photogallery
+    spec:
+      containers:
+      - name: appserver
+        image: RETRACTED # <---INSERT DOCKER USERNAME (e.g,. johndoe/photogallery:v1)
+        ports:
+        - containerPort: 5000
+        env:
+        - name: BUCKET_NAME
+          value: "photogallery"
+        - name: ACCESS_KEY
+          value: "RETRACTED" # <--- INSERT MinIO USERNAME
+        - name: SECRET_KEY
+          value: "RETRACTED" # <--- INSERT MinIO PASSWORD
+        - name: STORAGE_HOST
+          value: "storage"
+        - name: STORAGE_HOST_PORT
+          value: "9000"
+        - name: STORAGE_HOST_EXT
+          value: "minikube"
+        - name: STORAGE_PORT_EXT
+          value: "30036"
+        - name: DB_HOSTNAME
+          value: "db"
+        - name: DB_USERNAME
+          value: "root"
+        - name: DB_PASSWORD
+          value: "photo123"
+        - name: DB_NAME
+          value: "photodbs"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_TABLE
+          value: "photos"
+

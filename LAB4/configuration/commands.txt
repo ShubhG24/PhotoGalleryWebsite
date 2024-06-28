@@ -1,0 +1,47 @@
+#Start minikube cluster with 4GB RAM
+minikube start --memory=4096
+
+------------------
+
+#Create PV and PVC for MySQL
+kubectl apply -f 1-mysql-vol.yaml
+
+#Create MySQL Deployment and Service
+kubectl apply -f 2-mysql.yml
+
+#Create PV and PVC for MinIO
+kubectl apply -f 3-minio-vol.yaml
+
+#Create MinIO Deployment and Service
+kubectl apply -f 4-minio.yaml
+
+#Create App Deployment and Service
+kubectl apply -f 5-app.yaml
+
+#Get PVs and PVCs
+kubectl get pv,pvc
+
+#Get pods, services and deployments
+kubectl get po,svc,deploy
+
+------------------
+#Get URLs of all services
+minikube service --all
+
+------------------
+#Edit hosts file and add entry for minikube
+sudo vim /etc/hosts
+------------------
+
+#Cleanup
+kubectl delete -f 5-app.yaml
+
+kubectl delete -f 4-minio.yaml
+
+kubectl delete -f 3-minio-vol.yaml
+
+kubectl delete -f 2-mysql.yml
+
+kubectl delete -f 1-mysql-vol.yaml
+
+minikube delete
